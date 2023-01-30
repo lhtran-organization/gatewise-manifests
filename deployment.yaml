@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gatewise-deploy
+  namespace: gatewise
+  labels:
+    tier: monolith
+    app: gatewise
+    facing: internal
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      tier: monolith
+      app: gatewise
+      facing: internal
+  template:
+    metadata:
+      labels:
+        tier: monolith
+        app: gatewise
+        facing: internal
+    spec:
+      containers:
+      - name: gatewise
+        image: longhtran91/gatewise:v1.0.2
+        envFrom:
+        - secretRef:
+            name: gatewise-secret
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            cpu: 50m
+            memory: 64Mi
+        ports:
+        - containerPort: 8000
+          protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gatewise-service
+  namespace: gatewise
+  labels:
+    tier: monolith
+    app: gatewise
+    facing: internal
+spec:
+  type: ClusterIP
+  selector:
+    tier: monolith
+    app: gatewise
+    facing: internal
+  ports:
+  - protocol: TCP
+    port: 8000
