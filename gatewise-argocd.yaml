@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: guestbook
+  name: gatewise-argocd
   namespace: gatewise
 spec:
   project: default
