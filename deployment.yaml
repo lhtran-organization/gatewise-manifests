@@ -8,7 +8,6 @@ metadata:
     app: gatewise
     facing: internal
 spec:
-  replicas: 1
   selector:
     matchLabels:
       tier: monolith
@@ -56,3 +55,17 @@ spec:
   ports:
   - protocol: TCP
     port: 8000
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: hba-deploy-gatewise
+  namespace: gatewise
+spec:
+  maxReplicas: 6
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: gatewise
+  targetCPUUtilizationPercentage: 80
