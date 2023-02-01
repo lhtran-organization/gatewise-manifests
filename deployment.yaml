@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: gatewise
-        image: longhtran91/gatewise:v1.1.0
+        image: longhtran91/gatewise:v1.1.1
         envFrom:
         - secretRef:
             name: gatewise-secret
