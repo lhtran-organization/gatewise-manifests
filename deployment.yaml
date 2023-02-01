@@ -1,7 +1,7 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
-  name: gatewise-deploy
+  name: gatewise-rollout
   namespace: gatewise
   labels:
     tier: monolith
@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: gatewise
-        image: longhtran91/gatewise:v1.1.1
+        image: longhtran91/gatewise:v1.0.2
         envFrom:
         - secretRef:
             name: gatewise-secret
@@ -35,7 +35,20 @@ spec:
             memory: 64Mi
         ports:
         - containerPort: 8000
-          protocol: TCP
+  strategy:
+    blueGreen: 
+      # activeService specifies the service to update with the new template hash at time of promotion.
+      # This field is mandatory for the blueGreen update strategy.
+      activeService: gatewise-service
+      # previewService specifies the service to update with the new template hash before promotion.
+      # This allows the preview stack to be reachable without serving production traffic.
+      # This field is optional.
+      previewService: gatewise-service-preview
+      # autoPromotionEnabled disables automated promotion of the new stack by pausing the rollout
+      # immediately before the promotion. If omitted, the default behavior is to promote the new
+      # stack as soon as the ReplicaSet are completely ready/available.
+      # Rollouts can be resumed using: `kubectl argo rollouts promote ROLLOUT`
+      autoPromotionEnabled: false
 ---
 apiVersion: v1
 kind: Service
@@ -56,16 +69,35 @@ spec:
   - protocol: TCP
     port: 8000
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gatewise-service-preview
+  namespace: gatewise
+  labels:
+    tier: monolith
+    app: gatewise
+    facing: internal
+spec:
+  type: ClusterIP
+  selector:
+    tier: monolith
+    app: gatewise
+    facing: internal
+  ports:
+  - protocol: TCP
+    port: 8000
+---
 apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
 metadata:
-  name: hba-deploy-gatewise
+  name: hba-rollout-gatewise
   namespace: gatewise
 spec:
   maxReplicas: 6
   minReplicas: 1
   scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: gatewise-deploy
+    apiVersion: argoproj.io/v1alpha1
+    kind: Rollout
+    name: gatewise-rollout
   targetCPUUtilizationPercentage: 80
