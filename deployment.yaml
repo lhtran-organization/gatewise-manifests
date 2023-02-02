@@ -59,7 +59,7 @@ spec:
 apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
 metadata:
-  name: hba-deploy-gatewise
+  name: hpa-deploy-gatewise
   namespace: gatewise
 spec:
   maxReplicas: 6
